@@ -223,7 +223,7 @@ npm run dev
 npm run build:win
 ```
 
-`dist/UCI-Registrar-Setup-0.1.0.exe` 가 만들어집니다.
+`dist/UCI-Registrar-Setup-1.0.0.exe` 가 만들어집니다.
 
 > 코드 서명 인증서가 없어 처음 실행할 때 Windows SmartScreen 경고가 뜹니다.
 > `추가 정보` → `실행`으로 넘어가면 됩니다. 배포용으로 쓰려면 코드 서명 인증서가 필요합니다.
@@ -236,7 +236,7 @@ npm run build:win
 npm run build:demo
 ```
 
-`dist/UCI-Registrar-DEMO-Setup-0.1.0.exe` 가 만들어집니다.
+`dist/UCI-Registrar-DEMO-Setup-1.0.0.exe` 가 만들어집니다.
 
 | | 실제용 | 데모 |
 |---|---|---|
