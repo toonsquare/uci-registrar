@@ -1,0 +1,10 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>웹툰 신청 : 가짜 포털</title></head>
+<body><a href="login/logout.do">로그아웃</a><h1>웹툰 신청</h1>
+<a href="#" onclick="fn_goInput('new');return false;">작품 건별 신청</a>
+<a href="#" onclick="fnPop('bulk-pop.html');return false;">작품 일괄 신청</a>
+<a href="#" onclick="fn_goInput('add');return false;">회차 추가</a>
+<script>
+function fn_goInput (type) { location.href = 'apply-webtoon.html?type=' + type + location.search.replace(/^\?/, '&') }
+function fnPop (url) { location.href = url }
+</script>
+</body></html>

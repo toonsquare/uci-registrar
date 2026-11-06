@@ -1,0 +1,26 @@
+{
+  "//": [
+    "국립중앙도서관 API 연동 설정. API 규격이 제공되면 채운다 (providers/api.js 참고).",
+    "configured 가 false 인 동안 api 연동 모듈은 모든 동작에 '미개통' 으로 답한다.",
+    "endpoints 의 값은 baseUrl 뒤에 붙는 경로. 비어 있으면 그 동작은 미개통이다."
+  ],
+  "configured": false,
+  "baseUrl": "",
+  "auth": {
+    "//": "인증 방식도 규격에 따라 정한다. 예: 토큰 발급 경로, 헤더 이름.",
+    "tokenPath": "",
+    "headerName": ""
+  },
+  "endpoints": {
+    "login": "",
+    "verifyAccess": "",
+    "apply": "",
+    "applyBulk": "",
+    "status": "",
+    "list": "",
+    "count": "",
+    "detail": "",
+    "details": "",
+    "episodes": ""
+  }
+}

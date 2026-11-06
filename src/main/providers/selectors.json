@@ -1,0 +1,223 @@
+{
+  "_readme": [
+    "국립중앙도서관 ISBN·ISSN·UCI·납본 시스템(https://www.nl.go.kr/seoji/) 연동 설정입니다.",
+    "2026-08-03 실제 화면에 로그인해서 확인한 값으로 채워져 있습니다. 근거는 폼 매핑 명세서 참고.",
+    "",
+    "포털 화면이 개편되면 이 파일만 고치면 됩니다. 저장하면 즉시 반영되고, 프로그램을 껐다 켜지 않아도 됩니다.",
+    "고치는 방법: 크롬으로 해당 화면에 로그인 → F12 → scripts/dump-form.js 붙여넣기 → 결과 보고 아래 값 교체",
+    "",
+    "필수 항목은 포털의 fn_save() 검증 코드에서 확인한 것입니다. 이 값들만 채우면 신청이 통과합니다.",
+    "2026-10-15: 포털이 연령등급(#ageGrade)을 필수로 검사하기 시작해 fields.ageGrade 를 추가했습니다."
+  ],
+  "//configured": "false 로 두면 실제 포털에 접속하지 않습니다. 문제가 생겼을 때 되돌리는 스위치입니다.",
+  "configured": true,
+  "//login": "계정 종류는 '출판사·기관'(기본 선택) 기준입니다.",
+  "login": {
+    "url": "https://www.nl.go.kr/seoji/contents/S70100000000.do",
+    "idInput": "#publishID",
+    "passwordInput": "#publishPW",
+    "submitButton": "#publishBtn",
+    "//successMarker": "로그인 후에만 나타나는 로그아웃 링크. 로그인 성공 판정에 씁니다.",
+    "successMarker": "a[href*='logout.do']",
+    "//errorText": "이 포털은 로그인 실패를 alert 창으로 알리므로 비워 둡니다.",
+    "errorText": "",
+    "//기타계정": "공공간행물 디지털납본은 #digitalID/#digitalPW/#digitalBtn, 학위논문은 #thesisID/#thesisPW/#thesisBtn 입니다."
+  },
+  "//apply": [
+    "UCI 신청 화면. 웹툰과 웹소설은 주소가 다르지만 입력칸 이름은 완전히 같습니다.",
+    "menuUrl 은 신청 방법을 고르는 화면이고, 거기서 '작품 건별 신청'을 눌러야 폼이 나옵니다.",
+    "formUrl 로 바로 들어가는 것도 되지만, 안전하게 menuUrl → 링크 클릭 순서를 씁니다."
+  ],
+  "apply": {
+    "//newWorkSubmitUrl": "같은 작품명이 있을 때 '새 작품으로 등록' 을 고르면 폼을 이 주소로 보냅니다 (포털 중복 확인 창의 신규작품등록 버튼과 같음).",
+    "webtoon": {
+      "menuUrl": "https://www.nl.go.kr/seoji/contents/S90202000000.do",
+      "formUrl": "https://www.nl.go.kr/seoji/contents/S90202000000.do?schM=input&type=new",
+      "newWorkSubmitUrl": "https://www.nl.go.kr/seoji/module/S90202000000_workCode_info_input_proc.do"
+    },
+    "webnovel": {
+      "menuUrl": "https://www.nl.go.kr/seoji/contents/S90203000000.do",
+      "formUrl": "https://www.nl.go.kr/seoji/contents/S90203000000.do?schM=input&type=new",
+      "newWorkSubmitUrl": "https://www.nl.go.kr/seoji/module/S90203000000_workCode_info_input_proc.do"
+    },
+    "//duplicatePopupMarker": "같은 작품명이 있을 때 포털이 여는 중복 확인 창 주소의 일부. 창 이름은 popup.",
+    "duplicatePopupMarker": "workCode_info_duplicate_pop.do",
+    "//singleApplyLink": "선택 화면에서 '작품 건별 신청' 으로 들어가는 링크",
+    "singleApplyLink": "a[onclick*=\"fn_goInput('new')\"]",
+    "//formMarker": "폼이 실제로 떴는지 확인하는 요소",
+    "formMarker": "#workName",
+    "//fields": "왼쪽 키는 이 프로그램의 폼 항목 이름이라 바꾸지 마세요.",
+    "fields": {
+      "publishForm": "select[name=\"publishFormCode\"]",
+      "title": "#workName",
+      "writerRole": "#writerroleName",
+      "writer": "input[name=\"writer\"]",
+      "ageGrade": "#ageGrade",
+      "syndicateName": "#syndicateName1",
+      "syndicateCode": "#syndicateCode1",
+      "syndicateUrl": "#syndicateUrl1",
+      "price": "#price",
+      "priceKind": "#priceCharacter",
+      "currency": "#currencyCode",
+      "currencyEtc": "#currencyCodeEtc",
+      "episodeStart": "#episodeStartNumber",
+      "episodeEnd": "#episodeEndNumber",
+      "managerName": "#inputName",
+      "managerEmail": "#inputEMail",
+      "managerMobile": "#inputMobile"
+    },
+    "//authorRows": "작가는 한 줄에 한 사람(역할+이름). 둘째 줄부터는 포털의 + 버튼 함수로 줄을 늘린 뒤 같은 name 의 n번째 칸에 넣습니다.",
+    "authorRows": {
+      "addFunction": "fn_addAuthor",
+      "role": "select[name=\"writerroleName\"]",
+      "name": "input[name=\"writer\"]"
+    },
+    "//radios": "라디오·체크박스는 값 입력이 아니라 클릭으로 처리합니다.",
+    "serialStatusRadio": "input[name=\"serialStatus\"][value=\"{value}\"]",
+    "genreCheckbox": "input[name=\"genre\"][value=\"{value}\"]",
+    "receiveMethodRadio": "input[name=\"ReceiveMethod\"][value=\"{value}\"]",
+    "rightsAgreeCheckbox": "#agreeYn",
+    "privacyAgreeCheckbox": "#agreeEssential",
+    "//submitButton": "신청 버튼. id 가 없어 onclick 으로 잡습니다.",
+    "submitButton": "a[onclick*=\"fn_save\"]",
+    "//accountFields": [
+      "로그인한 계정에서 자동으로 채워져 내려오는 값들입니다. 프로그램이 입력하지 않고 읽기만 합니다.",
+      "등록자번호가 비어 있으면 그 계정은 아직 UCI를 신청할 수 없는 상태입니다."
+    ],
+    "accountFields": {
+      "registrantNo": "input[name=\"pubRegNumber\"]",
+      "registrantName": "input[name=\"makerName\"]",
+      "productionCompanyCode": "#productionCompanyCode1"
+    },
+    "//registrantRequiredMarker": "등록자번호가 없을 때 포털이 대신 보여주는 안내 화면의 요소. 위 accountFields 로 판정되므로 보통 비워 둡니다.",
+    "registrantRequiredMarker": "",
+    "//receiptText": "접수 결과가 표시되는 요소. 이 포털은 alert 로 알리므로 비워 둡니다.",
+    "receiptText": "",
+    "errorText": ""
+  },
+  "//status": [
+    "UCI 신청 현황 조회 화면. 한 쪽에 10건이며 프로그램은 필요한 쪽만 그때그때 읽습니다.",
+    "이 포털에는 접수번호라는 개념이 없습니다. 줄마다 포털 내부 키(recKey)가 있어 그걸로 상세 화면을 엽니다.",
+    "결과표 열 순서: 순번 | 신청대상 | 연재유형 | 작품명 | UCI | 최초신청일 | 최근신청일 | 최근발급일 | 신청상태"
+  ],
+  "status": {
+    "url": "https://www.nl.go.kr/seoji/contents/S90301000000.do",
+    "searchFieldSelect": "#schFld",
+    "//searchFieldValue": "검색 분류에서 '작품명' 에 해당하는 option 의 value. 화면 글자는 작품명이지만 value 는 WOR 입니다 (2026-10-21 확인).",
+    "searchFieldValue": "WOR",
+    "searchInput": "#schStr",
+    "searchButton": "a[onclick*=\"fn_search\"]",
+    "//statusCheckboxes": "신청상태 체크박스들. 검색 폼 안에 있어 체크한 상태만 조회됩니다. value 는 포털 상태 글자 그대로입니다.",
+    "statusCheckboxes": "input[name=\"schStatus\"]",
+    "//countText": "검색 결과 건수가 적힌 요소 (목록 오른쪽 아래). 없으면 「총 N건」 문구로 읽습니다.",
+    "countText": ".boardFilter .countArea .pointC-R",
+    "//statusGroups": "프로그램 상태 ↔ 포털 신청상태 글자. 대시보드 건수와 이력 필터가 씁니다.",
+    "statusGroups": {
+      "pending": [
+        "접수",
+        "재접수",
+        "회차추가"
+      ],
+      "needsFix": [
+        "보완요청"
+      ],
+      "issued": [
+        "완료"
+      ],
+      "rejected": [
+        "처리불가",
+        "삭제"
+      ]
+    },
+    "resultRows": "table.board-list tbody tr",
+    "//rowKey": "줄의 작품명 링크(onclick) 에서 그 신청의 키를 뽑는 정규식. 첫 괄호가 키. 상세 화면을 열 때 씁니다.",
+    "rowLink": "a[onclick*=\"fn_goEdit\"]",
+    "rowKeyPattern": "fn_goEdit\\('([^']+)'",
+    "//columns": "0부터 세는 열 번호",
+    "columns": {
+      "type": 1,
+      "publishForm": 2,
+      "title": 3,
+      "uci": 4,
+      "appliedAt": 5,
+      "lastAppliedAt": 6,
+      "issuedAt": 7,
+      "status": 8
+    },
+    "//pageFunction": "현황 목록의 쪽 넘김 함수. 2쪽부터 부릅니다.",
+    "pageFunction": "fn_egov_link_page",
+    "//pageSize": "한 쪽의 줄 수. 포털은 10건 고정입니다.",
+    "pageSize": 10,
+    "//emptyText": "결과가 없을 때 표에 들어가는 문구",
+    "emptyText": "신청정보가 없습니다",
+    "//episodesExcel": "발급된 건의 회차 시작·끝 번호. 신청 상세 화면에는 이 칸이 없고 조회/정정 화면의 「콘텐츠목록 다운로드」 엑셀에만 있다 (2026-10-21 확인). 키 목록(쉼표로 이어 씀)을 POST 하면 .xls 가 온다. 열은 머리글 이름으로 찾는다.",
+    "episodesExcel": {
+      "url": "https://www.nl.go.kr/seoji/excel/uci_contents_list_down_excel.do",
+      "keysField": "uciInfoKeyArr",
+      "chunk": 100,
+      "headers": { "uci": "UCI", "start": "회차시작번호", "end": "회차끝번호" }
+    },
+    "//detail": "신청 상세 화면. 현황 줄의 키를 POST 로 보내면 상태(완료·삭제 포함)와 상관없이 열립니다 (2026-10-21 확인). 작가·장르·연재처·가격 등 신청 폼의 모든 값이 채워져 있습니다.",
+    "detail": {
+      "url": "https://www.nl.go.kr/seoji/contents/S90300000000.do?schM=view&type=info",
+      "keyField": "recKey",
+      "formMarker": "input[name=\"workName\"]",
+      "//info": "머리 부분의 신청일·완료일·처리상태 (항목 이름과 값의 짝). 반려 사유가 있으면 여기에 같이 잡힙니다.",
+      "infoRows": ".board-write li",
+      "infoLabel": ".tit",
+      "infoValue": ".txt",
+      "fields": {
+        "publishForm": "select[name=\"publishFormCode\"]",
+        "title": "input[name=\"workName\"]",
+        "ageGrade": "select[name=\"ageGrade\"]",
+        "syndicateName": "input[name=\"syndicateName\"]",
+        "syndicateCode": "input[name=\"syndicateCode\"]",
+        "url": "input[name=\"syndicateUrl\"]",
+        "priceKind": "select[name=\"priceCharacter\"]",
+        "price": "input[name=\"price\"]",
+        "currency": "select[name=\"currencyCode\"]",
+        "currencyEtc": "input[name=\"currencyCodeEtc\"]"
+      },
+      "authorRole": "select[name=\"writerroleName\"]",
+      "authorName": "input[name=\"writer\"]",
+      "genreChecked": "input[name=\"genre\"]:checked",
+      "serialStatusChecked": "input[name=\"serialStatus\"]:checked"
+    }
+  },
+  "//참고URL": {
+    "UCI 신청 안내": "https://www.nl.go.kr/seoji/contents/S90201000000.do",
+    "등록자번호 신청 안내": "https://www.nl.go.kr/seoji/contents/S90101000000.do",
+    "UCI 조회/정정": "https://www.nl.go.kr/seoji/contents/S90702000000.do"
+  },
+  "//timeouts": "밀리초 단위. 포털이 느리면 늘리세요. 세션은 1시간입니다.",
+  "timeouts": {
+    "pageLoad": 30000,
+    "element": 15000,
+    "afterSubmit": 30000
+  },
+  "bulk": {
+    "//": "작품 일괄 신청 (엑셀 업로드).",
+    "//popupUrl": "신청 화면의 '작품 일괄 신청' 이 fnPop 으로 여는 주소",
+    "webtoon": {
+      "popupUrl": "https://www.nl.go.kr/seoji/module/S90202000000_workCode_apply_all_pop.do"
+    },
+    "webnovel": {
+      "popupUrl": "https://www.nl.go.kr/seoji/module/S90203000000_workCode_apply_all_pop.do"
+    },
+    "//formMarker": "팝업이 실제로 떴는지 확인하는 요소 (엑셀 파일 첨부칸)",
+    "formMarker": "#fileName",
+    "fileInput": "#fileName",
+    "//fields": "담당자 정보는 파일이 아니라 이 화면에서 한 번만 받는다.",
+    "fields": {
+      "managerName": "#inputName",
+      "managerEmail": "#inputEMail",
+      "managerMobile": "#inputMobile"
+    },
+    "receiveMethodRadio": "input[name=\"ReceiveMethod\"][value=\"{value}\"]",
+    "rightsAgreeCheckbox": "#agreeEssential",
+    "//submitButton": "fn_apply() 를 부르는 '신청' 버튼",
+    "submitButton": "a[onclick*=\"fn_apply\"]",
+    "//duplicatePopupMarker": "파일 안에 이미 있는 작품명이 있을 때 포털이 여는 중복 확인 창 주소의 일부. 창 이름은 popup2.",
+    "duplicatePopupMarker": "workCode_info_duplicate_pop2.do"
+  }
+}

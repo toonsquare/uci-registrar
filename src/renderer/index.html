@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;" />
+  <title>UCI 등록 도우미</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 로그인 화면 -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-logo">UCI</div>
+        <h1>UCI 등록 도우미</h1>
+        <p>국립중앙도서관 UCI 발급·등록 지원 프로그램</p>
+      </div>
+
+      <!-- 저장된 로그인 정보로 자동 로그인하는 동안 보여준다. 폼 대신 뜬다. -->
+      <div id="login-auto" class="login-auto" hidden>
+        <div class="spinner"></div>
+        <p class="login-auto-title"><strong id="login-auto-id"></strong> 계정으로 로그인하는 중…</p>
+        <p class="faint">국립중앙도서관 포털에 연결하고 있습니다.</p>
+        <button type="button" id="login-auto-cancel" class="btn btn-ghost btn-sm">취소하고 직접 로그인</button>
+      </div>
+
+      <form id="login-form" class="login-form" autocomplete="off">
+        <label class="field">
+          <span class="field-label">아이디</span>
+          <input id="login-id" type="text" placeholder="포털 아이디" autocomplete="username" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">비밀번호</span>
+          <input id="login-pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
+        </label>
+
+        <label class="checkbox">
+          <input id="login-remember" type="checkbox" />
+          <span>로그인 정보 저장</span>
+        </label>
+
+        <div id="login-notice" class="alert alert-success" hidden></div>
+        <div id="login-error" class="alert alert-error" hidden></div>
+
+        <button id="login-submit" type="submit" class="btn btn-primary btn-block">로그인</button>
+      </form>
+
+      <div class="login-foot">
+        <span id="login-mode-badge" class="badge">모의 연동</span>
+        <span class="login-hint">아무 아이디·비밀번호로 로그인됩니다. (비밀번호 <code>fail</code> 입력 시 실패 화면 확인)</span>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    처음 사용자 교육. 대화형 교육 페이지(edu/)를 그대로 띄운다.
+    교육 쪽에서 '연습 시작' 을 누르면 프로그램이 연습 모드로 들어간다. 도움말에서 다시 볼 수 있다.
+  -->
+  <div id="edu" class="edu" hidden>
+    <iframe id="edu-frame" title="UCI 교육" src="about:blank"></iframe>
+  </div>
+
+  <!-- 메인 화면 -->
+  <div id="app-screen" class="app-shell" hidden>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">UCI</div>
+        <div>
+          <strong>UCI 등록 도우미</strong>
+          <small id="sidebar-mode">모의 연동</small>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item" data-view="dashboard"><span class="nav-icon">■</span>대시보드</button>
+        <button class="nav-item" data-view="issue"><span class="nav-icon">＋</span>UCI 신청</button>
+        <button class="nav-item" data-view="history"><span class="nav-icon">⌕</span>신청 이력</button>
+        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>설정</button>
+        <button class="nav-item" data-view="help"><span class="nav-icon">?</span>도움말</button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="user-chip">
+          <div class="user-avatar" id="user-initial">U</div>
+          <div class="user-meta">
+            <strong id="user-name">사용자</strong>
+            <small id="user-org">기관</small>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn btn-ghost btn-sm btn-block">로그아웃</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- 연습 중에만 보인다. 실제 신청으로 오해하지 않도록 화면 맨 위에 둔다. -->
+      <div id="practice-bar" class="practice-bar" hidden>
+        <span><strong>연습 중</strong> — 포털에 아무것도 보내지 않습니다. 연습이 끝나면 기록은 지워집니다.</span>
+        <button type="button" class="btn btn-ghost btn-sm" id="practice-quit">연습 그만두기</button>
+      </div>
+
+      <header class="topbar">
+        <div>
+          <h2 id="view-title">대시보드</h2>
+          <p id="view-subtitle">신청 현황과 심사 결과를 확인합니다.</p>
+        </div>
+        <div class="topbar-actions">
+          <!-- 데모 빌드에서만 보인다. 상단 바 흐름 안에 두어 버튼을 가리지 않는다. -->
+          <span id="demo-badge" class="demo-badge" hidden>데모 · 실제 신청되지 않습니다</span>
+          <!-- 뒤에서 도는 신청 내역 불러오기의 진행·결과. 로그인 직후와 「다시 시도」 때 보인다. -->
+          <span id="sync-chip" class="sync-chip" hidden></span>
+          <div id="topbar-actions"></div>
+        </div>
+      </header>
+
+      <div id="view" class="view"></div>
+
+      <!--
+        연습을 단계별로 안내하는 띠. 연습 중에만 보인다.
+        화면 위에 띄우지 않고 아래에 붙박이로 둔다 — 띄우면 '누르세요' 라고 한 버튼을 가린다.
+      -->
+      <div id="coach" class="coach" hidden>
+        <div class="coach-body">
+          <div class="coach-head">
+            <span class="coach-step" id="coach-step"></span>
+            <strong id="coach-title"></strong>
+          </div>
+          <p id="coach-text" class="coach-text"></p>
+        </div>
+        <div class="row coach-actions" id="coach-actions"></div>
+      </div>
+    </main>
+  </div>
+
+  </div>
+
+  <!-- 이전 신청 불러오기. 작품 카드의 버튼으로 연다. -->
+  <div id="picker" class="picker" hidden>
+    <div class="picker-card" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+      <div class="picker-head">
+        <div>
+          <h3 id="picker-title">이전 신청 불러오기</h3>
+          <p class="faint">고르면 그 작품의 입력값이 이 카드에 채워집니다. 작품명과 회차 범위는 꼭 다시 확인하세요.</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="picker-close">닫기</button>
+      </div>
+      <input type="text" id="picker-search" class="picker-search" placeholder="작품명 · 작가명 · 연재처로 찾기" autocomplete="off" />
+      <div id="picker-list" class="picker-list"></div>
+    </div>
+  </div>
+
+  <div id="toast-host" class="toast-host"></div>
+
+  <script src="../shared/uci-constants.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

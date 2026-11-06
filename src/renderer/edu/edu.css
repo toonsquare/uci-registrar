@@ -1,0 +1,196 @@
+/* =========================================================
+   UCI 교육 실습 (미연시형) — 단일 파일
+   - 외부 의존성 없음 (프로그램의 보안 설정상 외부 폰트를 못 쓴다)
+   - 설치형 프로그램 내장 시: 이 파일을 그대로 웹뷰에서 열면 됨
+   - 바깥(프로그램)과는 postMessage 로만 이야기한다: ready / practice / close
+   ========================================================= */
+:root{
+  --bg:#F4F8FD; --navy:#1B2B4B; --navy2:#4A5A78; --blue:#3A6FE0; --sky:#DCE8FB;
+  --line:#C9D6EC; --white:#FFFFFF; --ok:#1F9A73; --okbg:#E3F5EE; --no:#C8463F; --nobg:#FBEAE8;
+  --font:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);color:var(--navy);background:var(--bg);display:flex;justify-content:center;align-items:center;min-height:100%;padding:16px}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+.app{width:100%;max-width:1024px;display:flex;flex-direction:column;gap:8px}
+/* 상단 바 */
+.topbar{display:flex;align-items:center;gap:16px;padding:8px 16px;background:var(--white);border:1px solid var(--line);border-radius:12px}
+.topbar .chap{font-weight:700;font-size:14px;white-space:nowrap}
+.gauge{flex:1;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--navy2)}
+.gauge .bar{flex:1;height:8px;background:var(--sky);border-radius:8px;overflow:hidden}
+.gauge .fill{height:100%;width:0;background:linear-gradient(90deg,#6C9CF0,var(--blue));transition:width .4s}
+.topbar .tb{border:1px solid var(--line);background:var(--white);border-radius:8px;padding:4px 12px;font-size:12px}
+
+/* 무대 */
+.stage{position:relative;width:100%;aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#EAF1FB;user-select:none}
+.bg{position:absolute;inset:0;transition:opacity .5s}
+.bg-office{background:linear-gradient(#EEF4FC 0 64%,#DDE6F3 64% 100%)}
+.bg-office::before{content:"";position:absolute;left:8%;top:8%;width:36%;height:44%;border:8px solid #FFFFFF;border-radius:4px;background:linear-gradient(#BFD8F7,#E6F0FC);box-shadow:0 0 0 1px var(--line)}
+.bg-office::after{content:"";position:absolute;left:0;right:0;top:64%;height:12px;background:#C9D6EC}
+.bg-library{background:
+  repeating-linear-gradient(90deg,transparent 0 184px,#C9D6EC 184px 192px),
+  repeating-linear-gradient(#E9EFF8 0 88px,#C9D6EC 88px 96px);}
+.bg-library::after{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(90deg,#9DB8E6 0 16px,#F0B9A8 16px 28px,#B7D7C8 28px 44px,transparent 44px 72px);
+  -webkit-mask:repeating-linear-gradient(transparent 0 32px,#000 32px 88px,transparent 88px 96px);
+  mask:repeating-linear-gradient(transparent 0 32px,#000 32px 88px,transparent 88px 96px);opacity:.55}
+.bg-night{background:linear-gradient(#DCE6F6 0 64%,#CBD7EA 64% 100%)}
+.bg-night::before{content:"";position:absolute;left:56%;top:8%;width:36%;height:44%;border:8px solid #FFFFFF;border-radius:4px;background:linear-gradient(#8FA9D8,#C8D8F2);box-shadow:0 0 0 1px var(--line)}
+
+/*
+ * 인물 그림은 허리 아래까지 들어 있다(팔·손이 보이게). 코드 그림(가슴 위)보다 머리가 작게 잡히므로
+ * 더 키우고 아래로 내린다. 허리 아래는 무대 밖·대사창 뒤로 들어가고, 무대가 overflow:hidden 이라 잘린다.
+ */
+.char{position:absolute;bottom:-14%;height:110%;left:50%;transform:translateX(-50%);transition:opacity .3s,transform .3s}
+.char.hide{opacity:0;transform:translateX(-50%) translateY(16px)}
+.char svg{height:100%;width:auto;display:block}
+
+/* 대화창 */
+.dialog{position:absolute;left:16px;right:16px;bottom:16px;min-height:28%;background:rgba(255,255,255,.96);border:2px solid var(--navy);border-radius:16px;padding:24px 32px 24px;cursor:pointer}
+.dialog .name{position:absolute;top:-18px;left:24px;background:var(--navy);color:var(--white);font-weight:700;font-size:14px;padding:4px 16px;border-radius:8px}
+.dialog .name:empty{display:none}
+.dialog .txt{font-size:18px;line-height:1.7;white-space:pre-line;min-height:60px}
+.dialog .next{position:absolute;right:24px;bottom:12px;font-size:12px;color:var(--navy2);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.dialog.narr{border-style:dashed}
+.dialog.narr .txt{color:var(--navy2)}
+
+/* 활동 패널 */
+.panel{position:absolute;inset:16px;background:var(--white);border:2px solid var(--navy);border-radius:16px;padding:24px 32px;overflow:auto;display:flex;flex-direction:column;gap:16px}
+.panel h2{font-size:20px;font-weight:800;line-height:1.4}
+.panel .sub{font-size:14px;color:var(--navy2);line-height:1.6}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--white);border-radius:12px;padding:12px 16px;font-size:16px;line-height:1.5}
+.opt:hover{border-color:var(--blue);background:#F6F9FF}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}
+.opt.no{border-color:var(--no);background:var(--nobg)}
+.fb{border-radius:12px;padding:12px 16px;font-size:15px;line-height:1.6}
+.fb.ok{background:var(--okbg);color:#105C45}
+.fb.no{background:var(--nobg);color:#8A2A24}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:auto}
+.btn{border:none;border-radius:12px;padding:12px 24px;font-size:16px;font-weight:700;background:var(--blue);color:var(--white)}
+.btn.ghost{background:var(--white);color:var(--navy);border:1px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+
+/* 설명 카드 */
+.lesson{display:flex;flex-direction:column;gap:8px}
+.lesson .li{display:grid;grid-template-columns:160px 1fr;gap:16px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:#FAFCFF;font-size:15px;line-height:1.6}
+.lesson .li b{color:var(--blue)}
+.lesson.steps .li{grid-template-columns:24px 1fr;align-items:center}
+.lesson .num{width:24px;height:24px;border-radius:12px;background:var(--navy);color:var(--white);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.review{position:absolute;inset:0;z-index:10}
+.row .left{margin-right:auto}
+
+/* 매칭 */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px}
+.match .col{display:flex;flex-direction:column;gap:8px}
+.chip{border:1px solid var(--line);background:var(--white);border-radius:12px;padding:12px 16px;font-size:15px;text-align:left;line-height:1.5}
+.chip.sel{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue) inset}
+.chip.done{border-color:var(--ok);background:var(--okbg);cursor:default}
+.chip.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* 순서 맞추기 */
+.order-pick{display:flex;flex-wrap:wrap;gap:8px}
+.order-seq{display:flex;flex-direction:column;gap:8px;min-height:48px;padding:12px;border:1px dashed var(--line);border-radius:12px;background:#FAFCFF}
+.order-seq .item{display:flex;gap:12px;align-items:center;font-size:15px}
+.order-seq .num{width:24px;height:24px;border-radius:12px;background:var(--navy);color:var(--white);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.order-seq .empty{font-size:14px;color:var(--navy2)}
+
+/* O/X 판정 */
+.cases{display:flex;flex-direction:column;gap:12px}
+.case{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;gap:16px;align-items:center}
+.case .who{flex:1;font-size:15px;line-height:1.6}
+.case .who b{display:block;font-size:16px}
+.case .ox{display:flex;gap:8px}
+.case .ox button{width:48px;height:48px;border-radius:24px;border:1px solid var(--line);background:var(--white);font-size:20px;font-weight:800}
+.case.ok{border-color:var(--ok);background:var(--okbg)}
+.case.no{border-color:var(--no);background:var(--nobg)}
+.case .note{font-size:14px;margin-top:4px}
+
+/* 신청 실습 */
+.formwrap{display:grid;grid-template-columns:240px 1fr;gap:24px;align-items:start}
+.memo{background:#FFF9E6;border:1px solid #EBDDAF;border-radius:12px;padding:16px;font-size:14px;line-height:1.7}
+.memo h3{font-size:15px;margin-bottom:8px}
+.memo dt{font-weight:700;margin-top:4px}
+.fake{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fake .head{background:var(--navy);color:var(--white);padding:8px 16px;font-size:14px;font-weight:700;display:flex;justify-content:space-between}
+.fake .head span{font-weight:400;font-size:12px;opacity:.8}
+.fake .body{padding:16px;display:grid;grid-template-columns:120px 1fr;gap:12px 16px;align-items:center;font-size:14px}
+.fake label.lb{font-weight:700;display:flex;align-items:center;gap:4px}
+.fake .req{color:var(--no)}
+.tip{position:relative;display:inline-flex;width:16px;height:16px;border-radius:8px;background:var(--sky);color:var(--blue);font-size:12px;font-weight:800;align-items:center;justify-content:center;cursor:help}
+.tip .pop{display:none;position:absolute;left:24px;top:-8px;width:240px;background:var(--navy);color:var(--white);font-weight:400;font-size:12px;line-height:1.6;padding:8px 12px;border-radius:8px;z-index:5}
+.tip:hover .pop,.tip:focus .pop{display:block}
+.fake input[type=text],.fake select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;font-family:inherit;color:var(--navy);background:var(--white)}
+.fake input.err,.fake select.err{border-color:var(--no);background:var(--nobg)}
+.fake .radios{display:flex;gap:16px}
+.fake .span2{grid-column:1/-1}
+.errs{font-size:13px;color:#8A2A24;line-height:1.7}
+.small{font-size:12px;color:var(--navy2);line-height:1.6}
+
+/* 챕터·알림·타이틀 */
+.cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;background:linear-gradient(160deg,#FFFFFF,#E3ECFA);cursor:pointer}
+.cover .no{font-size:14px;font-weight:700;color:var(--blue)}
+.cover .ttl{font-size:32px;font-weight:800;line-height:1.3}
+.cover .hint{font-size:13px;color:var(--navy2)}
+.title-main{font-size:44px;font-weight:800;line-height:1.2}
+.title-sub{font-size:16px;color:var(--navy2);line-height:1.6}
+.namebox{display:flex;gap:8px;margin-top:8px}
+.namebox input{border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:16px;font-family:inherit;width:200px;color:var(--navy)}
+.phone{width:320px;align-self:center;border:2px solid var(--navy);border-radius:24px;padding:24px 16px;background:#F7FAFF;display:flex;flex-direction:column;gap:12px}
+.phone .time{text-align:center;font-size:32px;font-weight:800}
+.noti{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:14px;line-height:1.6;animation:drop .5s ease-out}
+.noti b{display:block;font-size:12px;color:var(--navy2);font-weight:500}
+@keyframes drop{from{transform:translateY(-16px);opacity:0}}
+.skip{position:absolute;inset:0;background:var(--navy);color:var(--white);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:24px;font-weight:700}
+.skip .days{font-size:14px;font-weight:400;opacity:.8}
+
+/* 엔딩 */
+.grade{font-size:64px;font-weight:800;color:var(--blue);line-height:1}
+.recap{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:14px;line-height:1.6;text-align:left}
+.recap li{list-style:none;padding-left:16px;position:relative}
+.recap li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:3px;background:var(--blue)}
+
+/* 기록 */
+.log{position:absolute;inset:0;background:rgba(27,43,75,.96);color:var(--white);padding:32px;overflow:auto;display:none;z-index:20}
+.log.on{display:block}
+.log p{font-size:15px;line-height:1.7;margin-bottom:12px}
+.log p b{color:#AFC8F5;margin-right:8px}
+.log .close{position:sticky;top:0;float:right;background:var(--white);color:var(--navy);border:none;border-radius:8px;padding:4px 12px}
+
+@media (max-width:720px){
+  body{padding:8px}
+  .stage{aspect-ratio:auto;height:calc(100vh - 80px);min-height:560px}
+  .dialog{padding:20px 16px}
+  .dialog .txt{font-size:16px}
+  .panel{padding:16px}
+  .formwrap{grid-template-columns:1fr}
+  .fake .body{grid-template-columns:1fr}
+  .match,.recap{grid-template-columns:1fr}
+  .lesson .li{grid-template-columns:1fr;gap:4px}
+  .lesson.steps .li{grid-template-columns:24px 1fr;gap:12px}
+  .title-main{font-size:32px}
+  .char{height:64%}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- 프로그램에 내장하면서 더한 것 ---- */
+.cover.static{cursor:default}
+.row.center{justify-content:center}
+.panel.practice{align-items:center;text-align:center}
+.panel.practice h2{font-size:22px}
+.topbar .tb.close{margin-left:auto}
+.char img{height:100%;width:auto;display:block;object-fit:contain}
+
+
+/* ---- 배경 그림 (img/). 그림이 있으면 코드로 그린 배경 위에 덮인다. ---- */
+.bg-office{background-image:url("img/bg-office.png")}
+.bg-library{background-image:url("img/bg-library.png")}
+.bg-night{background-image:url("img/bg-night.png")}
+.bg-office,.bg-library,.bg-night{background-size:cover;background-position:center bottom;background-repeat:no-repeat}
+/* 코드로 그리던 창문·바닥선은 그림을 쓰는 동안 끈다 (그림 위에 겹쳐 그려진다) */
+.bg-office::before,.bg-office::after,.bg-library::after,.bg-night::before,.bg-night::after{display:none}
