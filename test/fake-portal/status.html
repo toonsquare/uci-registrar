@@ -1,0 +1,41 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>UCI 신청 현황 조회 : 가짜 포털</title></head>
+<body><a href="login/logout.do">로그아웃</a><h1>UCI 신청 현황 조회</h1>
+<!-- 실제 포털처럼 상태 체크박스가 검색 폼 안에 있고, 검색 분류의 value 는 WOR(작품명) 이다. -->
+<form name="searchForm" id="searchForm" method="get" action="status.html">
+  <span id="statusBoxes"></span>
+  <select id="schFld" name="schFld"><option value="">전체</option><option value="WOR">작품명</option><option value="SYN">연재처</option></select>
+  <input id="schStr" name="schStr"> <a href="#" onclick="fn_search();return false;">검색</a>
+  <input type="hidden" name="currentPage" value="1">
+</form>
+<form name="paramForm" method="get"><input type="hidden" name="recKey"></form>
+<p id="count"></p>
+<!-- 실제 포털의 목록 오른쪽 아래 건수 (boardFilter > countArea > pointC-R) -->
+<div class="boardFilter"><div class="countArea">총 <span class="pointC-R" id="countNum"></span>건</div></div>
+<table class="board-list"><thead><tr><th>순번</th><th>신청대상</th><th>연재유형</th><th>작품명</th><th>UCI</th><th>최초신청일</th><th>최근신청일</th><th>최근발급일</th><th>신청상태</th></tr></thead><tbody id="rows"></tbody></table>
+<div id="paging"></div>
+<script src="data.js"></script>
+<script>
+const PER = 10
+const q = new URLSearchParams(location.search)
+const query = q.get('schStr') || '', page = Number(q.get('currentPage') || 1)
+const picked = q.has('schStatus') ? q.getAll('schStatus') : STATUSES   // 아무것도 안 보내면 전부 (처음 열 때)
+document.getElementById('statusBoxes').innerHTML = STATUSES.map((s, i) =>
+  '<label><input type="checkbox" name="schStatus" id="status' + (i + 1) + '" value="' + s + '"' + (picked.includes(s) ? ' checked' : '') + '>' + s + '</label>').join(' ')
+document.getElementById('schFld').value = q.get('schFld') || ''
+document.getElementById('schStr').value = query
+const hits = DATA.filter((r) => picked.some((s) => r[8].startsWith(s)) && (!query || r[3].includes(query)))
+document.getElementById('count').textContent = hits.length ? '총 ' + hits.length + '건' : '총 건'
+document.getElementById('countNum').textContent = hits.length ? String(hits.length) : ''
+const body = document.getElementById('rows')
+const slice = hits.slice((page - 1) * PER, page * PER)
+if (!slice.length) body.innerHTML = '<tr><td colspan="9">신청정보가 없습니다.</td></tr>'
+else body.innerHTML = slice.map((r, i) => '<tr><td>' + ((page - 1) * PER + i + 1) + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td>' +
+  '<td><a href="#none" onclick="fn_goEdit(\'' + r[0] + '\', \'' + r[8] + '\'); return false;"><strong>' + r[3] + '</strong></a></td>' +
+  [r[4], r[5], r[6], r[7], r[8]].map((c) => '<td>' + c + '</td>').join('') + '</tr>').join('')
+const pages = Math.ceil(hits.length / PER)
+document.getElementById('paging').innerHTML = pages > 1 ? Array.from({ length: pages }, (_, i) => '<a href="#" onclick="fn_egov_link_page(' + (i + 1) + ');return false;">' + (i + 1) + '</a>').join(' ') : ''
+function fn_search () { const f = document.searchForm; f.currentPage.value = '1'; f.submit() }
+function fn_egov_link_page (n) { const f = document.searchForm; f.currentPage.value = n; f.submit() }
+function fn_goEdit (recKey, status) { if (status === '완료') { alert('UCI 발급이 완료된 작품은 [UCI 조회/정정]에서 확인할 수 있습니다.'); return } location.href = 'view.html?recKey=' + recKey }
+</script>
+</body></html>

@@ -1,0 +1,76 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>웹툰 신청 폼 : 가짜 포털</title></head>
+<body><a href="login/logout.do">로그아웃</a><h1>작품 건별 신청</h1>
+<!-- 실제 포털과 같은 id·name. 폼은 GET 으로 done.html 에 보낸다 (file:// 에서는 POST 를 못 쓴다) -->
+<form name="workCodeApplyForm" id="workCodeApplyForm" method="get" action="done.html">
+  <input type="hidden" name="newType" value=""><input type="hidden" name="uciType" value="T">
+  <input type="hidden" name="pubRegNumber" value="2024-000100"><input type="hidden" name="makerName" value="(주)예시제작사">
+  <p>연재유형 <select name="publishFormCode"><option value="">선택</option><option value="연재형">연재형</option><option value="단행본">단행본</option></select></p>
+  <p>작품명 <input id="workName" name="workName"></p>
+  <p>제작사 <input id="productionCompanyCode1" name="productionCompanyCode" value="A619"><input id="productionCompanyName1" name="productionCompanyName" value="(주)예시제작사"></p>
+  <ul id="authors">
+    <li class="author-row"><select name="writerroleName" id="writerroleName"><option value="">선택</option><option value="글/그림">글/그림</option><option value="글">글</option><option value="그림">그림</option></select>
+      <input name="writer" placeholder="예)한강"> <input name="isni"> <a href="#btn" onclick="fn_addAuthor();return false;">+</a></li>
+  </ul>
+  <p>연령등급 <select id="ageGrade" name="ageGrade"><option value="">선택</option><option value="AL">전체</option><option value="12+">12+</option><option value="15+">15+</option><option value="18+">18세 이상</option></select></p>
+  <p>연재처 <input id="syndicateName1" name="syndicateName" readonly><input type="hidden" id="syndicateCode1" name="syndicateCode"><input id="syndicateUrl1" name="syndicateUrl"></p>
+  <p>가격 <select id="priceCharacter" name="priceCharacter"><option value="연재가 회당">연재가 회당</option><option value="연재가 권당">연재가 권당</option><option value="비매품 무료">비매품 무료</option><option value="합산가">합산가</option></select>
+     <input id="price" name="price"> <select id="currencyCode" name="currencyCode"><option value="원">원</option><option value="코인">코인</option><option value="쿠키">쿠키</option><option value="직접입력">직접입력</option></select>
+     <input id="currencyCodeEtc" name="currencyCodeEtc"></p>
+  <p>연재상태 <label><input type="radio" name="serialStatus" value="연재중">연재중</label><label><input type="radio" name="serialStatus" value="휴재">휴재</label><label><input type="radio" name="serialStatus" value="완결">완결</label><label><input type="radio" name="serialStatus" value="연재전">연재전</label></p>
+  <p>장르 <label><input type="checkbox" name="genre" value="드라마">드라마</label><label><input type="checkbox" name="genre" value="로맨스/순정">로맨스/순정</label><label><input type="checkbox" name="genre" value="일상">일상</label><label><input type="checkbox" name="genre" value="개그">개그</label></p>
+  <p>회차 <input id="episodeStartNumber" name="episodeStartNumber"> ~ <input id="episodeEndNumber" name="episodeEndNumber"></p>
+  <p><label><input type="checkbox" id="agreeYn" name="agreeYn">저작권자 동의</label> <label><input type="checkbox" id="agreeEssential" name="agreeEssential">개인정보 동의</label></p>
+  <p>담당자 <input id="inputName" name="inputName"> <input id="inputEMail" name="inputEMail"> <input id="inputMobile" name="inputMobile">
+     <label><input type="radio" name="ReceiveMethod" value="handphone">문자</label><label><input type="radio" name="ReceiveMethod" value="email">이메일</label></p>
+  <a href="#" onclick="fn_save();return false;">신청</a>
+</form>
+<form name="searchForm2" method="get"><input type="hidden" name="schStr"></form>
+<script>
+/* 이 계정에 이미 등록된 작품명. 같은 이름으로 다시 신청하면 포털처럼 중복 확인 창을 연다. */
+const EXISTING = ['이미 있는 작품']
+if (new URLSearchParams(location.search).get('noreg')) document.querySelector('input[name="pubRegNumber"]').value = ''
+function fn_addAuthor () {
+  const n = document.querySelectorAll('input[name="writer"]').length + 1
+  const li = document.createElement('li'); li.className = 'author-row'
+  li.innerHTML = '<select name="writerroleName" id="writerroleName' + n + '"><option value="">선택</option><option value="글/그림">글/그림</option><option value="글" selected>글</option><option value="그림">그림</option></select>' +
+    ' <input name="writer" id="writer' + n + '"> <input name="isni" id="isni' + n + '"> <a href="#btn" onclick="fn_addAuthor();return false;">+</a> <a href="#btn" onclick="this.closest(\'li\').remove();return false;">-</a>'
+  document.getElementById('authors').appendChild(li)
+}
+function fn_save () {
+  const frm = document.workCodeApplyForm
+  const empty = (v) => !String(v || '').trim()
+  const roles = [...document.querySelectorAll('select[name="writerroleName"]')], writers = [...document.querySelectorAll('input[name="writer"]')]
+  if (empty(frm.publishFormCode.value)) return alert('연재유형을 입력하세요.')
+  if (empty(frm.workName.value)) return alert('작품명을 입력하세요.')
+  if (empty(writers[0].value)) return alert('작가역할/작가명을 입력해주세요.')
+  for (let i = 0; i < roles.length; i++) if (empty(writers[i].value) !== empty(roles[i].value)) return alert('작가역할/작가명을 전부 입력해주세요.')
+  if (empty(frm.ageGrade.value)) return alert('연령등급을 선택하세요.')
+  if (!document.querySelector('input[name="genre"]:checked')) return alert('장르를 선택하세요.')
+  if (empty(frm.syndicateName.value)) return alert('연재처를 입력하세요.')
+  if (empty(frm.price.value)) return alert('가격을 입력하세요.')
+  if (!document.querySelector('input[name="serialStatus"]:checked')) return alert('연재상태를 선택하세요.')
+  if (empty(frm.episodeStartNumber.value)) return alert('회차 시작번호를 입력하세요.')
+  if (empty(frm.episodeEndNumber.value)) return alert('회자 끝번호를 입력하세요.')
+  if (!frm.agreeYn.checked) return alert('저작권자 동의에 체크하여 주시기 바랍니다.')
+  if (!confirm('신청하시겠습니까?')) return
+  const authorList = writers.map((w, i) => ({ roleName: roles[i].value, authorName: w.value })).filter((a) => a.authorName)
+  if (EXISTING.includes(frm.workName.value.trim()) && frm.newType.value !== 'new') {
+    window.open('', 'popup', 'width=300,height=200')
+    const f = document.searchForm2; f.schStr.value = frm.workName.value; f.action = 'S90202000000_workCode_info_duplicate_pop.do'; f.target = 'popup'; f.submit()
+    return
+  }
+  const summary = {
+    workName: frm.workName.value, authorList, ageGrade: frm.ageGrade.value, newType: frm.newType.value,
+    publishForm: frm.publishFormCode.value, syndicateCode: frm.syndicateCode.value, syndicateUrl: frm.syndicateUrl.value,
+    priceKind: frm.priceCharacter.value, price: frm.price.value, currency: frm.currencyCode.value, currencyEtc: frm.currencyCodeEtc.value,
+    serialStatus: document.querySelector('input[name="serialStatus"]:checked').value,
+    genres: [...document.querySelectorAll('input[name="genre"]:checked')].map((g) => g.value),
+    episodes: [frm.episodeStartNumber.value, frm.episodeEndNumber.value],
+    manager: [frm.inputName.value, frm.inputEMail.value, frm.inputMobile.value, document.querySelector('input[name="ReceiveMethod"]:checked')?.value],
+    agreed: [frm.agreeYn.checked, frm.agreeEssential.checked]
+  }
+  alert('신청이 완료되었습니다.')
+  location.href = 'done.html#' + encodeURIComponent(JSON.stringify(summary))
+}
+</script>
+</body></html>

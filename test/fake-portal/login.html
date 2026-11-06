@@ -1,0 +1,13 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>로그인 : 가짜 포털</title></head>
+<body>
+<h1>로그인</h1>
+<input id="publishID" placeholder="아이디"> <input id="publishPW" type="password" placeholder="비밀번호">
+<button id="publishBtn" onclick="fn_goLoginPubProc()">로그인</button>
+<script>
+function fn_goLoginPubProc () {
+  const id = document.getElementById('publishID').value, pw = document.getElementById('publishPW').value
+  if (id === 'tester' && pw === 'good') location.href = 'main.html'
+  else alert('아이디 또는 비밀번호가 올바르지 않습니다.')
+}
+</script>
+</body></html>

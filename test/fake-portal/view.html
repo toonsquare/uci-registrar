@@ -1,0 +1,35 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>UCI 신청 조회 : 가짜 포털</title></head>
+<body><a href="login/logout.do">로그아웃</a>
+<div class="boardWrap"><h5 class="btitle" id="head"></h5></div>
+<div class="board-write"><ul id="info"></ul></div>
+<form name="workCodeView" id="workCodeView">
+  <select name="publishFormCode"><option value="">선택</option><option value="연재형">연재형</option><option value="단행본">단행본</option><option value="기타">기타</option></select>
+  <input name="workName"> <input name="productionCompanyCode" value="A619" readonly> <input name="productionCompanyName" value="(주)예시제작사" readonly>
+  <select name="ageGrade"><option value="">선택</option><option value="AL">전체</option><option value="12+">12+</option><option value="15+">15+</option><option value="18+">18세 이상</option></select>
+  <ul id="authors"></ul>
+  <span id="genres"></span>
+  <input name="syndicateName" readonly><input type="hidden" name="syndicateCode"><input name="syndicateUrl">
+  <select name="priceCharacter"><option value="">선택</option><option value="연재가 회당">연재가 회당</option><option value="연재가 권당">연재가 권당</option><option value="비매품 무료">비매품 무료</option><option value="합산가">합산가</option></select>
+  <input name="price"> <select name="currencyCode"><option value="">선택</option><option value="원">원</option><option value="코인">코인</option><option value="쿠키">쿠키</option><option value="직접입력">직접입력</option></select>
+  <input name="currencyCodeEtc">
+  <span id="serial"></span>
+</form>
+<script src="data.js"></script>
+<script>
+const key = new URLSearchParams(location.search).get('recKey')
+const row = DATA.find((r) => r[0] === key)
+if (!row) { document.body.innerHTML = '<p>신청 정보를 찾을 수 없습니다.</p>' } else {
+  const d = row[9]
+  document.getElementById('head').textContent = '[' + row[1] + '] UCI 신청 조회'
+  const info = { 신청일: row[5], 완료일: row[7], 처리상태: row[8], ...(d.info || {}) }
+  document.getElementById('info').innerHTML = Object.entries(info).map(([k, v]) => '<li><div><div class="tit">' + k + '</div><div class="txt"><span>' + v + '</span></div></div></li>').join('')
+  const f = document.workCodeView
+  f.publishFormCode.value = d.publishForm; f.workName.value = row[3]; f.ageGrade.value = d.ageGrade
+  document.getElementById('authors').innerHTML = d.authors.map((a) => '<li><select name="writerroleName"><option value="">선택</option><option value="글/그림"' + (a.role === '글/그림' ? ' selected' : '') + '>글/그림</option><option value="글"' + (a.role === '글' ? ' selected' : '') + '>글</option><option value="그림"' + (a.role === '그림' ? ' selected' : '') + '>그림</option></select> <input name="writer" value="' + a.name + '"></li>').join('')
+  document.getElementById('genres').innerHTML = ['드라마', '로맨스/순정', '일상', '개그'].map((g) => '<label><input type="checkbox" name="genre" value="' + g + '"' + (d.genres.includes(g) ? ' checked' : '') + '>' + g + '</label>').join('')
+  f.syndicateName.value = d.syndicateName; f.syndicateCode.value = d.syndicateCode; f.syndicateUrl.value = d.url
+  f.priceCharacter.value = d.priceKind; f.price.value = d.price; f.currencyCode.value = d.currency; f.currencyCodeEtc.value = d.currencyEtc
+  document.getElementById('serial').innerHTML = ['연재중', '휴재', '완결', '연재전'].map((v) => '<label><input type="radio" name="serialStatus" value="' + v + '"' + (d.serialStatus === v ? ' checked' : '') + '>' + v + '</label>').join('')
+}
+</script>
+</body></html>

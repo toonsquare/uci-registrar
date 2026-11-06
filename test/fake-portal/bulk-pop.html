@@ -1,0 +1,30 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>작품 일괄 신청 : 가짜 포털</title></head>
+<body><a href="login/logout.do">로그아웃</a><h1>작품 일괄 신청</h1>
+<form name="formUpload" method="get" action="done.html">
+  <input type="file" id="fileName" name="fileName" accept=".xls"><input type="hidden" name="chkCnt" value="0">
+  <p>담당자 <input id="inputName" name="inputName"> <input id="inputEMail" name="inputEMail"> <input id="inputMobile" name="inputMobile">
+     <label><input type="radio" name="ReceiveMethod" value="handphone">문자</label><label><input type="radio" name="ReceiveMethod" value="email">이메일</label>
+     <label><input type="checkbox" id="agreeEssential" name="agreeEssential">동의</label></p>
+  <a href="#" onclick="fn_apply();return false;">신청</a>
+</form>
+<form name="popForm" method="get"><input type="hidden" name="workName"></form>
+<script>
+let uploadIng = false
+function fn_apply () {
+  const frm = document.formUpload
+  if (!frm.fileName.files.length) return alert('파일을 첨부하세요.')
+  if (!confirm('신청 하시겠습니까?')) return
+  if (frm.inputName.value === '양식오류담당자') { alert('필수 항목 누락 (3행)'); alert('일괄등록 양식을 다시 한번 확인하여 주시기 바랍니다.'); return }
+  /* 담당자명이 '중복담당자' 면 파일 안에 이미 등록된 작품이 있는 상황으로 본다 (resultCode 10) */
+  if (frm.inputName.value === '중복담당자' && frm.chkCnt.value !== '1') {
+    frm.chkCnt.value = '1'
+    document.popForm.workName.value = '이미 있는 작품'
+    window.open('', 'popup2', 'width=300,height=200')
+    document.popForm.action = 'S90202000000_workCode_info_duplicate_pop2.do'; document.popForm.target = 'popup2'; document.popForm.submit()
+    return
+  }
+  fn_apply_proc()
+}
+function fn_apply_proc () { alert('일괄등록 신청이 접수되었습니다. (' + document.formUpload.fileName.files[0].name + ')') }
+</script>
+</body></html>
